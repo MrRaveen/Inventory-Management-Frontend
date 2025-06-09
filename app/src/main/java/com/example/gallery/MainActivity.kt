@@ -6,11 +6,14 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import controller.handleLogin
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -31,23 +34,24 @@ class MainActivity : AppCompatActivity() {
                    ).show()
                }else{
                    //send the request
-                   var result = handleLogin()
+                   val result: handleLogin by viewModels()
                    var result2 : String = ""
                    var messageOut : String = ""
                    lifecycleScope.launch {
                        result2 = result.handleProcess(userName.text.toString(), password.text.toString(), resources)
-                       if(result2.isNotEmpty()){
-                           messageOut = result2
-                       }else{
-                           messageOut = "Token is not generated"
-                       }
+//                       if(result2.isNotEmpty()){
+//
+//                       }else{
+//                           messageOut = "Token is not generated"
+//                       }
+                       messageOut = result2
+                       //FIXME: TEST
+                       Toast.makeText(
+                           this@MainActivity,
+                           messageOut,
+                           Toast.LENGTH_LONG // Add duration
+                       ).show()
                    }
-                   //FIXME: TEST
-                   Toast.makeText(
-                       this, // Use the Activity's context (replace "MainActivity" with your actual Activity name)
-                       messageOut,
-                       Toast.LENGTH_LONG // Add duration
-                   ).show()
                }
            }catch (ex: Exception){
                Log.e("TAG","Error occured when login (view): " + ex.toString())

@@ -2,7 +2,10 @@ package controller
 
 import android.content.res.Resources
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import com.example.gallery.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -17,10 +20,14 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import javax.net.ssl.HostnameVerifier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import okhttp3.ConnectionPool
+import java.util.concurrent.TimeUnit
 
-class handleLogin {
-
+class handleLogin : ViewModel(){
+    private val scope = CoroutineScope(Dispatchers.IO)
     private fun createClient(resources: Resources): OkHttpClient {
         resources.openRawResource(R.raw.inventorymanagement).use { inputStream ->
             val certificateFactory = CertificateFactory.getInstance("X.509")
@@ -47,6 +54,9 @@ class handleLogin {
             }
 
             return OkHttpClient.Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)    // Time to establish connection
+                .readTimeout(60, TimeUnit.SECONDS)       // Time between data packets
+                .writeTimeout(60, TimeUnit.SECONDS)      // Time to send request body
                 .sslSocketFactory(
                     sslContext.socketFactory,
                     trustManagerFactory.trustManagers[0] as X509TrustManager
@@ -60,7 +70,7 @@ class handleLogin {
         userName: String,
         password: String,
         resources: Resources
-    ): String = withContext(Dispatchers.IO) {
+    ):String = withContext(Dispatchers.IO) {
         try {
             val client = createClient(resources)
 
@@ -83,11 +93,12 @@ class handleLogin {
                 .build()
 
             val response: Response = client.newCall(request).execute()
-            val responseBody2 = response.body()?.string() ?: "Empty body"
-            Log.e("TAG","OUT : " + responseBody2)
-            response.body()?.string() ?: "Empty response"
+//            val responseBody2 = response.body()?.string() ?: "Empty body"
+//            Log.e("TAG","OUT : " + responseBody2)
+            return@withContext response.body()?.string() ?: "Empty response"
         } catch (e: Exception) {
-            "Error occurred: ${e.message}"
+            Log.e("TAG","Error occurred (controller): ${e.message}")
+           return@withContext "Error occurred (controller): ${e.message}"
         }
     }
 }
