@@ -1,9 +1,11 @@
 package com.example.gallery
 
+import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -33,18 +35,22 @@ class MainActivity : AppCompatActivity() {
                        Toast.LENGTH_SHORT // Add duration
                    ).show()
                }else{
+                   val loadingDialog = Dialog(this)
+                   loadingDialog.setContentView(R.layout.custom_dialog)
+                   loadingDialog.window?.setLayout(
+                       LinearLayout.LayoutParams.WRAP_CONTENT,
+                       LinearLayout.LayoutParams.WRAP_CONTENT
+                   )
+                   loadingDialog.setCancelable(false)
+                   loadingDialog.show()
                    //send the request
-                   val result: handleLogin by viewModels()
+                   val result: handleLogin by viewModels() //in here
                    var result2 : String = ""
                    var messageOut : String = ""
                    lifecycleScope.launch {
                        result2 = result.handleProcess(userName.text.toString(), password.text.toString(), resources)
-//                       if(result2.isNotEmpty()){
-//
-//                       }else{
-//                           messageOut = "Token is not generated"
-//                       }
                        messageOut = result2
+                       loadingDialog.dismiss()
                        //FIXME: TEST
                        Toast.makeText(
                            this@MainActivity,
