@@ -1,5 +1,7 @@
 package secure
 
+import android.content.Context
+
 interface decript_accessInter {
-    fun accessToken()
+    fun accessToken(context : Context) : String?
 }

@@ -2,11 +2,13 @@ package com.example.gallery
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -16,6 +18,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import controller.createKey
+import controller.decript_access
 import controller.encrypt_save
 import controller.handleLogin
 import kotlinx.coroutines.awaitAll
@@ -31,6 +34,11 @@ class MainActivity : AppCompatActivity() {
         val logInButton = findViewById<Button>(R.id.btnLogin)
         val userName = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editUserName)
         val password = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editPassword)
+        val createAccValue = findViewById<TextView>(R.id.txtSignUp)
+        createAccValue.setOnClickListener{
+            val intent = Intent(this, createAcc::class.java)
+            startActivity(intent)
+        }
         logInButton.setOnClickListener {
            try{
                if(userName.text.toString() == "" || password.text.toString() == ""){
@@ -56,19 +64,22 @@ class MainActivity : AppCompatActivity() {
                        result2 = result.handleProcess(userName.text.toString(), password.text.toString(), resources)
                        messageOut = result2
                        loadingDialog.dismiss()
-                       //save the token in android keystore
-                       var securityKeyObj = createKey()
-                       var createdSecKey = securityKeyObj.createSecurityKey()
-                       var saveObj = encrypt_save()
-                       saveObj.saveProcess(messageOut,createdSecKey,this@MainActivity)
-                       //FIXME:TEST - GET THE STORED TOKEN
-
-                       //FIXME: TEST
-                       Toast.makeText(
-                           this@MainActivity,
-                           messageOut,
-                           Toast.LENGTH_LONG // Add duration
-                       ).show()
+                       if(messageOut == "Invalid username or password"){
+                           Toast.makeText(
+                               this@MainActivity,
+                               messageOut,
+                               Toast.LENGTH_LONG // Add duration
+                           ).show()
+                       }else{
+                           //save the token in android keystore
+                           var securityKeyObj = createKey()
+                           var createdSecKey = securityKeyObj.createSecurityKey()
+                           var saveObj = encrypt_save()
+                           saveObj.saveProcess(messageOut,this@MainActivity)
+                           //go to another activity
+                           val intent = Intent(this@MainActivity, homeMenu::class.java)
+                           startActivity(intent)
+                       }
                    }
                }
            }catch (ex: Exception){

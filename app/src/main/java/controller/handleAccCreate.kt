@@ -5,28 +5,19 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.gallery.R
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import okhttp3.MediaType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.Response
-import java.io.InputStream
+import java.security.KeyStore
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
-import java.security.KeyStore
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
-import javax.net.ssl.HostnameVerifier
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
-import okhttp3.ConnectionPool
-import java.util.concurrent.TimeUnit
 
-class handleLogin : ViewModel(){
+class handleAccCreate: ViewModel() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private fun createClient(resources: Resources): OkHttpClient {
         resources.openRawResource(R.raw.inventorymanagement).use { inputStream ->
@@ -65,41 +56,13 @@ class handleLogin : ViewModel(){
                 .build()
         }
     }
+    suspend fun handleLogInProcess():String = withContext(Dispatchers.IO) {
+        try{
 
-    suspend fun handleProcess(
-        userName: String,
-        password: String,
-        resources: Resources
-    ):String = withContext(Dispatchers.IO) {
-        var loginObj = logInEndpoints()
-        try {
-            val client = createClient(resources)
-
-            // Fix JSON formatting - strings need quotes
-            val jsonBody = """
-                {
-                    "userName": "$userName",
-                    "password": "$password"
-                }
-            """.trimIndent()
-
-            val body = RequestBody.create(
-                MediaType.parse("application/json; charset=utf-8"),
-                jsonBody
-            )
-
-            val request = Request.Builder()
-                .url(loginObj.logInEndpoint)
-                .post(body)
-                .build()
-
-            val response: Response = client.newCall(request).execute()
-//            val responseBody2 = response.body()?.string() ?: "Empty body"
-//            Log.e("TAG","OUT : " + responseBody2)
-            return@withContext response.body()?.string() ?: "Empty response"
-        } catch (e: Exception) {
-            Log.e("TAG","Error occurred (controller): ${e.message}")
-           return@withContext "Error occurred (controller): ${e.message}"
+            return@withContext ""
+        }catch(e: Exception){
+            Log.e("TAG","Error occured when processing create account (handleAccCreate.kt) : "+ e.toString())
+            throw Exception("Error occured when processing create account (handleAccCreate.kt) : " + e.toString())
         }
     }
 }
