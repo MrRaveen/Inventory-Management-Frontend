@@ -54,9 +54,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 
-    //test --> okhttp
+    //okhttp
     implementation("com.squareup.okhttp3:okhttp:3.10.0")
-
+    //android keystore
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
