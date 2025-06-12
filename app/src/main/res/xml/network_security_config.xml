@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config>
-        <domain includeSubdomains="true">https://192.168.113.42:7113</domain>
+        <domain includeSubdomains="true">https://192.168.159.42:7113</domain>
         <trust-anchors>
-            <certificates src="@raw/inventorymanagement"/>
+            <certificates src="@raw/inventorymanagement2"/>
         </trust-anchors>
     </domain-config>
 </network-security-config>

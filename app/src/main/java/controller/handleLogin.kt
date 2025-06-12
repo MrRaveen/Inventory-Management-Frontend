@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 class handleLogin : ViewModel(){
     private val scope = CoroutineScope(Dispatchers.IO)
     private fun createClient(resources: Resources): OkHttpClient {
-        resources.openRawResource(R.raw.inventorymanagement).use { inputStream ->
+        resources.openRawResource(R.raw.inventorymanagement2).use { inputStream ->
             val certificateFactory = CertificateFactory.getInstance("X.509")
             val certificate = certificateFactory.generateCertificate(inputStream) as X509Certificate
 
@@ -50,7 +50,7 @@ class handleLogin : ViewModel(){
 
             // Create custom hostname verifier
             val hostnameVerifier = HostnameVerifier { hostname, _ ->
-                hostname == "192.168.113.42" // Verify the specific IP
+                hostname == "192.168.159.42" // Verify the specific IP
             }
 
             return OkHttpClient.Builder()

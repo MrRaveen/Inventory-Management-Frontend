@@ -7,7 +7,11 @@ import com.example.gallery.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
@@ -17,10 +21,10 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
-class handleAccCreate: ViewModel() {
+class handleAccCreate : ViewModel() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private fun createClient(resources: Resources): OkHttpClient {
-        resources.openRawResource(R.raw.inventorymanagement).use { inputStream ->
+        resources.openRawResource(R.raw.inventorymanagement2).use { inputStream ->
             val certificateFactory = CertificateFactory.getInstance("X.509")
             val certificate = certificateFactory.generateCertificate(inputStream) as X509Certificate
 
@@ -41,7 +45,7 @@ class handleAccCreate: ViewModel() {
 
             // Create custom hostname verifier
             val hostnameVerifier = HostnameVerifier { hostname, _ ->
-                hostname == "192.168.113.42" // Verify the specific IP
+                hostname == "192.168.159.42" // Verify the specific IP
             }
 
             return OkHttpClient.Builder()
@@ -56,10 +60,30 @@ class handleAccCreate: ViewModel() {
                 .build()
         }
     }
-    suspend fun handleLogInProcess():String = withContext(Dispatchers.IO) {
+    suspend fun handleLogInProcess(
+        userName: String,
+        password: String,
+        resources: Resources
+    ):String = withContext(Dispatchers.IO) {
         try{
-
-            return@withContext ""
+            var loginObj = logInEndpoints()
+            val client = createClient(resources)
+            val jsonBody = """
+                {
+                    "userName": "$userName",
+                    "password": "$password"
+                }
+            """.trimIndent()
+            val body = RequestBody.create(
+                MediaType.parse("application/json; charset=utf-8"),
+                jsonBody
+            )
+            val request = Request.Builder()
+                .url(loginObj.createAccEndpoint)
+                .post(body)
+                .build()
+            val response: Response = client.newCall(request).execute()
+            return@withContext response.body()?.string() ?: "Empty response"
         }catch(e: Exception){
             Log.e("TAG","Error occured when processing create account (handleAccCreate.kt) : "+ e.toString())
             throw Exception("Error occured when processing create account (handleAccCreate.kt) : " + e.toString())
