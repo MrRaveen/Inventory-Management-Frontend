@@ -60,6 +60,11 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:3.10.0")
     //android keystore
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    //gson
+    implementation("com.google.code.gson:gson:2.10.1")
+    //byviewmodels for fragments
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation ("androidx.fragment:fragment-ktx:1.6.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

@@ -1,8 +1,10 @@
 package com.example.gallery
 
+import Model.LogInOutputResponse
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -40,7 +42,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
         logInButton.setOnClickListener {
-           try{
+            val PREF_NAME = "prefs"
+            val KEY_NAME = "userid"
+            try{
                if(userName.text.toString() == "" || password.text.toString() == ""){
                    Toast.makeText(
                        this, // Use the Activity's context (replace "MainActivity" with your actual Activity name)
@@ -58,27 +62,43 @@ class MainActivity : AppCompatActivity() {
                    loadingDialog.show()
                    //send the request
                    val result: handleLogin by viewModels() //in here
-                   var result2 : String = ""
+                   var result2 : LogInOutputResponse?
                    var messageOut : String = ""
                    lifecycleScope.launch {
                        result2 = result.handleProcess(userName.text.toString(), password.text.toString(), resources)
-                       messageOut = result2
+//                       messageOut = result2
                        loadingDialog.dismiss()
-                       if(messageOut == "Invalid username or password"){
+//                       Toast.makeText(
+//                           this@MainActivity, // Use the Activity's context (replace "MainActivity" with your actual Activity name)
+//                           result2?.userID.toString() + "\n" + result2?.token,
+//                           Toast.LENGTH_SHORT // Add duration
+//                       ).show()
+                       if(result2 == null){
                            Toast.makeText(
                                this@MainActivity,
-                               messageOut,
+                               "Invalid username or password",
                                Toast.LENGTH_LONG // Add duration
                            ).show()
                        }else{
-                           //save the token in android keystore
-                           var securityKeyObj = createKey()
-                           var createdSecKey = securityKeyObj.createSecurityKey()
-                           var saveObj = encrypt_save()
-                           saveObj.saveProcess(messageOut,this@MainActivity)
-                           //go to another activity
-                           val intent = Intent(this@MainActivity, homeMenu::class.java)
-                           startActivity(intent)
+                           if(result2!!.token == null || result2!!.userID == 0){
+                               Toast.makeText(
+                                   this@MainActivity,
+                                   "Something went wrong. Try again",
+                                   Toast.LENGTH_LONG // Add duration
+                               ).show()
+                           }else{
+                               //save the token in android keystore
+                               var securityKeyObj = createKey()
+                               var createdSecKey = securityKeyObj.createSecurityKey()
+                               var saveObj = encrypt_save()
+                               saveObj.saveProcess(result2!!.token,this@MainActivity)
+                               //TODO: SAVE THE USER ID
+                               var sharedPref : SharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                               val editor = sharedPref.edit().putString(KEY_NAME, result2!!.userID.toString()).apply()
+                               //go to another activity (main menu)
+                               val intent = Intent(this@MainActivity, homeMenu::class.java)
+                               startActivity(intent)
+                           }
                        }
                    }
                }
