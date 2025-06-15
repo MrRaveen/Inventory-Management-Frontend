@@ -22,6 +22,7 @@ import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
+import com.google.gson.reflect.TypeToken
 
 class getAllFolders : ViewModel(){
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -62,24 +63,67 @@ class getAllFolders : ViewModel(){
                 .build()
         }
     }
-    suspend fun handleFolderGet(userID: Int,jwtToken : String,resources: Resources): List<Folders>? = withContext(Dispatchers.IO){
-        try{
-            var loginObj = logInEndpoints()
+//    suspend fun handleFolderGet(userID: Int,jwtToken : String,resources: Resources): List<Folders>? = withContext(Dispatchers.IO){
+//        try{
+//            var loginObj = logInEndpoints()
+//            val client = createClient(resources)
+//            val request = Request.Builder()
+//                .url(loginObj.getFoldersEndpoint + userID)
+//                .addHeader("Authorization", "Bearer $jwtToken")
+//                .build()
+//            val response: Response = client.newCall(request).execute()
+//            val responseBody = response.body()?.string() ?: "{}"
+//            Log.e("TAG", "OUTPUT!! --> $responseBody")
+////            val responseBody = response.body()?.string() ?: "{}"
+////            val authResponse = Gson().fromJson(responseBody, FolderResponseConverter::class.java)
+////            //FIXME:TEST
+////            authResponse.folderList?.forEach {item ->
+////                Log.e("TAG","TEST OUTPUT : " + item.name)
+////            }
+//            return@withContext null;
+//        }catch(e: Exception){
+//            throw Exception("Error occured when selecting folders (getAllFolders.kt) : " + e.toString())
+//        }
+//    }
+suspend fun handleFolderGet(userID: Int, jwtToken: String, resources: Resources): List<Folders>? =
+    withContext(Dispatchers.IO) {
+        try {
+            val loginObj = logInEndpoints()
             val client = createClient(resources)
+
+            // FIX: Use correct endpoint property
+            val url = loginObj.getFoldersEndpoint + userID
+            Log.d("Network", "Fetching folders from: $url")
+
             val request = Request.Builder()
-                .url(loginObj.getFoldersEndpoint + userID)
+                .url(url)
                 .addHeader("Authorization", "Bearer $jwtToken")
                 .build()
+
             val response: Response = client.newCall(request).execute()
-            val responseBody = response.body()?.string() ?: "{}"
-            val authResponse = Gson().fromJson(responseBody, FolderResponseConverter::class.java)
-            //FIXME:TEST
-            authResponse.folderList?.forEach {item ->
-                Log.e("TAG","TEST OUTPUT : " + item.name)
+            val responseBody = response.body()?.string() ?: "[]"
+            Log.e("TAG", "Response body: $responseBody")
+
+            // Check HTTP status
+            if (!response.isSuccessful) {
+                Log.e("Network", "HTTP error: ${response.code()} - ${response.message()}")
+                return@withContext null
             }
-            return@withContext null;
-        }catch(e: Exception){
-            throw Exception("Error occured when selecting folders (getAllFolders.kt) : " + e.toString())
+
+            // FIX: Correct JSON parsing for array response
+            val typeToken = object : TypeToken<List<Folders>>() {}.type
+            val folderList = Gson().fromJson<List<Folders>>(responseBody, typeToken) ?: emptyList()
+
+            // Log results
+            Log.e("Network", "Fetched ${folderList.size} folders")
+            folderList.forEach { folder ->
+                Log.e("FolderData", "ID: ${folder.folderID}, Name: ${folder.name}")
+            }
+
+            return@withContext folderList
+        } catch (e: Exception) {
+            Log.e("Network", "Error fetching folders", e)
+            throw Exception("Error occurred when selecting folders: ${e.message}")
         }
     }
 }

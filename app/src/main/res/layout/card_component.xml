@@ -61,7 +61,7 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <Button
-                android:id="@+id/button2"
+                android:id="@+id/buttonRemove"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -73,7 +73,7 @@
                 android:textSize="12sp" />
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/buttonView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -85,7 +85,7 @@
                 android:textSize="12sp" />
 
             <Button
-                android:id="@+id/button5"
+                android:id="@+id/buttonUpdate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

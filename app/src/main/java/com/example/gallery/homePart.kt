@@ -15,6 +15,9 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import controller.CardAdapter
 import controller.decript_access
 import controller.getAllFolders
 import kotlinx.coroutines.launch
@@ -61,19 +64,68 @@ class homePart : Fragment() {
         //send the request
         val requestObj : getAllFolders by viewModels()
         var result2 : List<Folders>?
+//        lifecycleScope.launch {
+//            //get the userID
+//            var sharedPref : SharedPreferences = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+//            var savedUserID = sharedPref.getString(KEY_NAME, null)
+//            //get the token
+//            var testObj = decript_access()
+//            var testResult = testObj.accessToken(context)
+//            result2 = requestObj.handleFolderGet(
+//                savedUserID?.toInt() ?: 0,
+//                testResult.toString(),resources)
+//            //output
+//            Toast.makeText(requireContext(), "fetched", Toast.LENGTH_SHORT).show()
+//        }
         lifecycleScope.launch {
-            //get the userID
-            var sharedPref : SharedPreferences = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            var savedUserID = sharedPref.getString(KEY_NAME, null)
-            //get the token
-            var testObj = decript_access()
-            var testResult = testObj.accessToken(context)
-            result2 = requestObj.handleFolderGet(
-                savedUserID?.toInt() ?: 0,
-                testResult.toString(),resources)
-            //output
-            Toast.makeText(requireContext(), "fetched", Toast.LENGTH_SHORT).show()
+            try {
+                // Get credentials
+                val sharedPref = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                val savedUserID = sharedPref.getString(KEY_NAME, null) ?: "0"
+                val token = decript_access().accessToken(requireContext()) ?: ""
+
+                // Fetch folders
+                val requestObj: getAllFolders by viewModels()
+                val folders = requestObj.handleFolderGet(
+                    savedUserID.toInt(),
+                    token,
+                    resources
+                )
+
+                // Process results
+                folders?.let {
+                    Log.d("homePart", "Received ${it.size} folders")
+
+                    // TODO: Update your UI here (e.g., set to RecyclerView adapter)
+                    // adapter.submitList(it)
+                    val recyclerViewOut = view.findViewById<RecyclerView>(R.id.recycleviewHomePart)
+                    recyclerViewOut.layoutManager = LinearLayoutManager(context)
+                    recyclerViewOut.adapter = CardAdapter(folders)
+                    // Show success message
+                    Toast.makeText(
+                        requireContext(),
+                        "Fetched ${it.size} folders",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } ?: run {
+                    Toast.makeText(
+                        requireContext(),
+                        "No folders found",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Log.e("homePart", "Error loading folders", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Error: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                loadingDialog.dismiss()
+            }
         }
+        //loadingDialog.dismiss()
     }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
