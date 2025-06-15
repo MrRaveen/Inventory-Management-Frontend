@@ -1,13 +1,9 @@
 package controller
 
-import Model.FolderResponseConverter
-import Model.Folders
-import Model.LogInOutputResponse
 import android.content.res.Resources
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.gallery.R
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,9 +18,8 @@ import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
-import com.google.gson.reflect.TypeToken
 
-class getAllFolders : ViewModel(){
+class folderOperations : ViewModel(){
     private val scope = CoroutineScope(Dispatchers.IO)
     private fun createClient(resources: Resources): OkHttpClient {
         resources.openRawResource(R.raw.inventorymanagement2).use { inputStream ->
@@ -63,44 +58,27 @@ class getAllFolders : ViewModel(){
                 .build()
         }
     }
-suspend fun handleFolderGet(userID: Int, jwtToken: String, resources: Resources): List<Folders>? =
-    withContext(Dispatchers.IO) {
-        try {
+    suspend fun handleRemove(folderID : Int, resources : Resources, jwtToken: String) : Boolean =  withContext(Dispatchers.IO) {
+        try{
             val loginObj = logInEndpoints()
             val client = createClient(resources)
-
-            val url = loginObj.getFoldersEndpoint + userID
-            Log.d("Network", "Fetching folders from: $url")
+            val url = loginObj.getRemoveFolderEndpoint + folderID
 
             val request = Request.Builder()
                 .url(url)
+                .delete()
                 .addHeader("Authorization", "Bearer $jwtToken")
                 .build()
 
             val response: Response = client.newCall(request).execute()
-            val responseBody = response.body()?.string() ?: "[]"
-            Log.e("TAG", "Response body: $responseBody")
-
-            // Check HTTP status
-            if (!response.isSuccessful) {
-                Log.e("Network", "HTTP error: ${response.code()} - ${response.message()}")
-                return@withContext null
+            if(response.isSuccessful){
+                return@withContext true
+            }else{
+                return@withContext false
             }
-
-            // FIX: Correct JSON parsing for array response
-            val typeToken = object : TypeToken<List<Folders>>() {}.type
-            val folderList = Gson().fromJson<List<Folders>>(responseBody, typeToken) ?: emptyList()
-
-            // Log results
-            Log.e("Network", "Fetched ${folderList.size} folders")
-            folderList.forEach { folder ->
-                Log.e("FolderData", "ID: ${folder.folderID}, Name: ${folder.name}")
-            }
-
-            return@withContext folderList
-        } catch (e: Exception) {
-            Log.e("Network", "Error fetching folders", e)
-            throw Exception("Error occurred when selecting folders: ${e.message}")
+        }catch (e : Exception){
+            Log.e("TAG","Error occured when removing folder (folderOperations) : ${e.toString()}")
+            throw Exception("Error occured when removing folder (folderOperations) : ${e.toString()}")
         }
     }
 }

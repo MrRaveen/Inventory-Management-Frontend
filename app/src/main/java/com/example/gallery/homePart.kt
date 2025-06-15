@@ -19,7 +19,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import controller.CardAdapter
 import controller.decript_access
+import controller.folderOperations
 import controller.getAllFolders
+import controller.handleLogin
 import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
@@ -64,19 +66,6 @@ class homePart : Fragment() {
         //send the request
         val requestObj : getAllFolders by viewModels()
         var result2 : List<Folders>?
-//        lifecycleScope.launch {
-//            //get the userID
-//            var sharedPref : SharedPreferences = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-//            var savedUserID = sharedPref.getString(KEY_NAME, null)
-//            //get the token
-//            var testObj = decript_access()
-//            var testResult = testObj.accessToken(context)
-//            result2 = requestObj.handleFolderGet(
-//                savedUserID?.toInt() ?: 0,
-//                testResult.toString(),resources)
-//            //output
-//            Toast.makeText(requireContext(), "fetched", Toast.LENGTH_SHORT).show()
-//        }
         lifecycleScope.launch {
             try {
                 // Get credentials
@@ -100,7 +89,8 @@ class homePart : Fragment() {
                     // adapter.submitList(it)
                     val recyclerViewOut = view.findViewById<RecyclerView>(R.id.recycleviewHomePart)
                     recyclerViewOut.layoutManager = LinearLayoutManager(context)
-                    recyclerViewOut.adapter = CardAdapter(folders)
+                    val folderOperationObj: folderOperations by viewModels() //in here
+                    recyclerViewOut.adapter = CardAdapter(folders,folderOperationObj, resources)
                     // Show success message
                     Toast.makeText(
                         requireContext(),
