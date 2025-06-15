@@ -71,6 +71,8 @@ class homePart : Fragment() {
             result2 = requestObj.handleFolderGet(
                 savedUserID?.toInt() ?: 0,
                 testResult.toString(),resources)
+            //output
+            Toast.makeText(requireContext(), "fetched", Toast.LENGTH_SHORT).show()
         }
     }
     override fun onCreateView(
