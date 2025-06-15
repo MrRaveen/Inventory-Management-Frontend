@@ -16,6 +16,9 @@
         android:theme="@style/Theme.Gallery"
         tools:targetApi="31">
         <activity
+            android:name=".updateFolder"
+            android:exported="false" />
+        <activity
             android:name=".homeMenu"
             android:exported="false" />
         <activity

@@ -4,6 +4,7 @@ import Model.Folders
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,11 +19,18 @@ import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gallery.R
 import android.content.res.Resources
+import android.util.Log
 import android.widget.LinearLayout
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.example.gallery.MainActivity
+import com.example.gallery.homeMenu
+import com.example.gallery.updateFolder
 import kotlinx.coroutines.launch
 import kotlin.getValue
+import kotlin.jvm.java
 
 class CardAdapter(private val inventoryList : List<Folders>, private val folderOperationsObj : folderOperations, private var resources: Resources) :
     RecyclerView.Adapter<CardAdapter.CardViewHolder>() {
@@ -72,6 +80,7 @@ class CardAdapter(private val inventoryList : List<Folders>, private val folderO
                             val removeResult = folderOperationsObj.handleRemove(item.folderID, resources, token)
                             if (removeResult) {
                                 Toast.makeText(context, "Removed successfully", Toast.LENGTH_SHORT).show()
+                                refreshFragment(context)
                             } else {
                                 Toast.makeText(context, "Removal failed", Toast.LENGTH_SHORT).show()
                             }
@@ -91,10 +100,32 @@ class CardAdapter(private val inventoryList : List<Folders>, private val folderO
 
         }
         holder.updateButton.setOnClickListener {
+            try{
+                val intent = Intent(context, updateFolder::class.java).apply {
+                    putExtra("folderID", item.folderID)
+                }
+                context.startActivity(intent)
 
+            }catch(e : Exception){
+                Log.e("TAG","ERROR!!! : ${e.toString()}")
+                throw Exception("${e.toString()}")
+            }
         }
     }
-
+    fun refreshFragment(context: Context?) {
+        context?.let {
+            val fragmentManager = (context as? AppCompatActivity)?.supportFragmentManager
+            fragmentManager?.let {
+                val currentFragment = fragmentManager.findFragmentById(R.id.mainHomeSection)
+                currentFragment?.let {
+                    val fragmentTransaction = fragmentManager.beginTransaction()
+                    fragmentTransaction.detach(it)
+                    fragmentTransaction.attach(it)
+                    fragmentTransaction.commit()
+                }
+            }
+        }
+    }
     override fun getItemCount(): Int {
        return inventoryList.size
     }
